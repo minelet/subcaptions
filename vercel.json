@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/admin/users", "destination": "/api/admin?action=users" },
+    { "source": "/api/admin/orders", "destination": "/api/admin?action=orders" },
+    { "source": "/api/admin/set-credits", "destination": "/api/admin?action=set-credits" },
+    { "source": "/api/admin/delete-user", "destination": "/api/admin?action=delete-user" },
+    { "source": "/api/auth/google", "destination": "/api/google-auth?action=login" },
+    { "source": "/api/auth/google-callback", "destination": "/api/google-auth?action=callback" }
+  ]
+}
