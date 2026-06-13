@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — SubCaption</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;
+  --surface:#161c26;
+  --surface2:#1c2433;
+  --surface3:#202a3a;
+  --border:#232d3f;
+  --border2:#2c3a50;
+  --teal:#2dd4bf;
+  --teal-dim:#1a9e8f;
+  --teal-glow:rgba(45,212,191,0.12);
+  --text:#e6edf3;
+  --text2:#8b9ab0;
+  --text3:#526070;
+  --danger:#f87171;
+  --warning:#fbbf24;
+  --success:#4ade80;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.6;min-height:100vh}
+
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(45,212,191,0)}50%{box-shadow:0 0 18px 4px rgba(45,212,191,0.18)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── LOGIN OVERLAY ── */
+#login-overlay{position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;align-items:center;justify-content:center}
+#login-overlay.hidden{display:none}
+.login-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:18px;
+  padding:36px 40px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:18px;
+  animation:fadeInUp .35s ease both;
+}
+.api-logo{font-size:18px;font-weight:600;letter-spacing:-0.03em;color:var(--text);text-align:center}
+.api-logo em{font-style:normal;color:var(--teal)}
+.login-title{font-size:15px;font-weight:600;color:var(--text);text-align:center;margin-top:4px}
+.login-sub{font-size:12px;color:var(--text3);text-align:center;margin-top:-10px}
+.login-field{display:flex;flex-direction:column;gap:6px}
+.login-field label{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3)}
+.api-input{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  background:var(--surface2);border:1px solid var(--border2);
+  color:var(--text);border-radius:9px;padding:10px 14px;
+  outline:none;width:100%;transition:border-color .2s,box-shadow .2s;
+}
+.api-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(45,212,191,0.1)}
+.btn-save-key{
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;
+  color:var(--bg);background:var(--teal);border:none;
+  border-radius:9px;padding:11px;cursor:pointer;width:100%;
+  transition:background .15s,transform .1s;
+}
+.btn-save-key:hover{background:var(--teal-dim);transform:translateY(-1px)}
+.btn-save-key:active{transform:translateY(0)}
+.login-err{font-size:12px;color:var(--danger);text-align:center;display:none}
+.login-err.show{display:block}
+
+#app.app-hidden{display:none}
+
+/* ── NAV ── */
+nav{
+  background:rgba(13,17,23,0.95);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);padding:0 24px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;animation:fadeInDown .4s ease both;
+}
+.logo{font-size:15px;font-weight:600;letter-spacing:-0.03em;color:var(--text)}
+.logo em{font-style:normal;color:var(--teal)}
+.logo-dot{display:inline-block;width:6px;height:6px;background:var(--teal);border-radius:50%;margin-left:3px;animation:pulseGlow 2.4s ease-in-out infinite}
+.badge{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal);background:var(--teal-glow);border:1px solid rgba(45,212,191,0.25);padding:3px 10px;border-radius:100px;margin-left:10px}
+.nav-right{display:flex;align-items:center;gap:10px}
+.btn-api-settings{background:none;border:1px solid var(--border2);color:var(--text2);font-family:'Inter',sans-serif;font-size:11px;border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s}
+.btn-api-settings:hover{border-color:var(--teal);color:var(--teal)}
+
+#account-dropdown{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:10px;
+  min-width:200px;padding:8px;z-index:300;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  animation:fadeInDown .15s ease both;
+}
+#account-dropdown.hidden{display:none}
+.acct-email{font-size:11px;color:var(--text2);padding:6px 8px;word-break:break-all}
+.acct-divider{height:1px;background:var(--border2);margin:4px 0}
+.acct-item{
+  display:block;width:100%;text-align:left;background:none;border:none;
+  color:var(--text);font-family:'Inter',sans-serif;font-size:12px;
+  padding:8px;border-radius:7px;cursor:pointer;transition:background .15s;
+}
+.acct-item:hover{background:var(--surface3)}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1100px;margin:0 auto;padding:28px 24px;display:flex;flex-direction:column;gap:24px}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;animation:fadeInUp .4s ease both}
+.section h2{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section h2 .count{font-size:11px;color:var(--text3);font-weight:500;background:var(--surface2);padding:2px 8px;border-radius:100px}
+
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:var(--text3);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:0.06em;padding:8px 10px;border-bottom:1px solid var(--border2)}
+td{padding:10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.mono{font-family:'JetBrains Mono',monospace}
+.tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:0.05em}
+.tag-admin{color:var(--teal);background:var(--teal-glow);border:1px solid rgba(45,212,191,0.25)}
+.tag-user{color:var(--text3);background:var(--surface2);border:1px solid var(--border2)}
+.tag-infinite{color:var(--warning);background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25)}
+.tag-status-completed{color:var(--success);background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.25)}
+.tag-status-pending{color:var(--warning);background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25)}
+.tag-status-failed{color:var(--danger);background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25)}
+
+.credits-cell{display:flex;align-items:center;gap:8px}
+.credits-input{
+  font-family:'JetBrains Mono',monospace;font-size:12px;width:80px;
+  background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+  border-radius:6px;padding:5px 8px;outline:none;transition:border-color .15s;
+}
+.credits-input:focus{border-color:var(--teal)}
+.credits-input:disabled{opacity:.4}
+.btn-sm{
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:600;
+  border-radius:6px;padding:5px 10px;cursor:pointer;border:1px solid var(--border2);
+  background:none;color:var(--text2);transition:all .15s;
+}
+.btn-sm:hover{border-color:var(--teal);color:var(--teal)}
+.btn-sm.active{color:var(--warning);border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.08)}
+.btn-sm.save{color:var(--bg);background:var(--teal);border-color:var(--teal)}
+.btn-sm.save:hover{background:var(--teal-dim)}
+.btn-sm.danger:hover{border-color:var(--danger);color:var(--danger)}
+
+.empty{color:var(--text3);text-align:center;padding:20px;font-size:12px}
+.toast{
+  position:fixed;bottom:20px;right:20px;background:var(--surface3);border:1px solid var(--border2);
+  border-radius:9px;padding:10px 16px;font-size:12px;color:var(--text);
+  opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:999;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{border-color:rgba(248,113,113,0.4);color:var(--danger)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="api-logo">Sub<em>Caption</em> Admin</div>
+    <div class="login-title">Admin Login</div>
+    <div class="login-sub">Restricted access</div>
+
+    <div class="login-err" id="login-err"></div>
+
+    <form id="login-form">
+      <div class="login-field">
+        <label>Email</label>
+        <input class="api-input" type="email" id="login-email" required autocomplete="email" />
+      </div>
+      <div class="login-field" style="margin-top:14px">
+        <label>Password</label>
+        <input class="api-input" type="password" id="login-password" required autocomplete="current-password" />
+      </div>
+      <button class="btn-save-key" type="submit" style="margin-top:18px">Log In</button>
+    </form>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:16px"><span style="flex:1;height:1px;background:var(--border2);display:block"></span><span style="font-size:11px;color:var(--text3)">or</span><span style="flex:1;height:1px;background:var(--border2);display:block"></span></div>
+    <button id="btn-google" onclick="window.location.href='/api/auth/google?redirect=/admin.html'" style="margin-top:12px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:Inter,sans-serif;font-size:13px;font-weight:500;padding:10px;border-radius:10px;cursor:pointer">Continue with Google</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app-hidden">
+  <nav>
+    <div class="logo">Sub<em>Caption</em><span class="logo-dot"></span><span class="badge">Admin</span></div>
+    <div class="nav-right">
+      <a href="blink_twice_export_fix_1.html" class="btn-api-settings" style="text-decoration:none">← Back to app</a>
+      <div id="account-menu-wrap" style="position:relative">
+        <button class="btn-api-settings" id="btn-account">
+          <span id="account-icon" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--teal-glow);color:var(--teal);font-weight:700;font-size:10px;margin-right:6px;vertical-align:-3px">A</span>
+          <span id="account-email-short">Admin</span>
+        </button>
+        <div id="account-dropdown" class="hidden">
+          <div id="account-email-full" class="acct-email"></div>
+          <div class="acct-divider"></div>
+          <button class="acct-item" id="acct-logout">Log out</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <div class="section">
+      <h2>Users <span class="count" id="user-count">0</span></h2>
+      <input type="text" id="user-search" class="api-input" placeholder="Search by email..." style="margin-bottom:14px;max-width:320px" />
+      <table>
+        <thead>
+          <tr><th>Email</th><th>Role</th><th>Joined</th><th>Credits</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="users-body"></tbody>
+      </table>
+      <div class="empty" id="users-empty" style="display:none">No users yet. Sign up an account in the main app first.</div>
+    </div>
+
+    <div class="section">
+      <h2>Orders <span class="count" id="order-count">0</span></h2>
+      <table>
+        <thead>
+          <tr><th>User</th><th>Amount</th><th>Credits</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody id="orders-body"></tbody>
+      </table>
+      <div class="empty" id="orders-empty">No orders yet — payments/credits not wired up yet.</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const overlay = document.getElementById('login-overlay');
+const app = document.getElementById('app');
+const form = document.getElementById('login-form');
+const errEl = document.getElementById('login-err');
+const emailEl = document.getElementById('login-email');
+const passEl = document.getElementById('login-password');
+const toast = document.getElementById('toast');
+
+function showToast(msg, isError){
+  toast.textContent = msg;
+  toast.classList.toggle('error', !!isError);
+  toast.classList.add('show');
+  setTimeout(()=> toast.classList.remove('show'), 2500);
+}
+
+/* ── Admin login (real API) ── */
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errEl.classList.remove('show');
+  const email = emailEl.value.trim().toLowerCase();
+  const pass = passEl.value;
+
+  try{
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+    const data = await res.json();
+    if(!res.ok){ errEl.textContent = data.error || 'Login failed'; errEl.classList.add('show'); return; }
+    if(!data.user.isAdmin){ errEl.textContent = 'This account is not an admin'; errEl.classList.add('show'); await fetch('/api/logout',{method:'POST'}); return; }
+
+    enterApp(data.user);
+  }catch(err){
+    errEl.textContent = 'Network error'; errEl.classList.add('show');
+  }
+});
+
+document.getElementById('acct-logout').addEventListener('click', async () => {
+  await fetch('/api/logout', { method:'POST' });
+  overlay.classList.remove('hidden');
+  app.classList.add('app-hidden');
+  emailEl.value=''; passEl.value='';
+});
+
+function enterApp(user){
+  overlay.classList.add('hidden');
+  app.classList.remove('app-hidden');
+  document.getElementById('account-email-full').textContent = user.email;
+  document.getElementById('account-email-short').textContent = 'Admin';
+  document.getElementById('account-icon').textContent = user.email.charAt(0).toUpperCase();
+  loadUsers();
+  loadOrders();
+}
+
+// On load: check existing session
+(async function init(){
+  try{
+    const res = await fetch('/api/me');
+    if(res.ok){
+      const user = await res.json();
+      if(user.isAdmin){ enterApp(user); return; }
+    }
+  }catch(e){}
+  app.classList.add('app-hidden');
+})();
+
+/* ── Account dropdown ── */
+const accountBtn = document.getElementById('btn-account');
+const dropdown = document.getElementById('account-dropdown');
+accountBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('hidden'); });
+document.addEventListener('click', (e) => {
+  if(!dropdown.contains(e.target) && !accountBtn.contains(e.target)) dropdown.classList.add('hidden');
+});
+
+/* ── Users table ── */
+let searchDebounce;
+document.getElementById('user-search').addEventListener('input', () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(loadUsers, 250);
+});
+
+function fmtDate(ts){
+  return new Date(ts).toLocaleString(undefined, { dateStyle:'medium', timeStyle:'short' });
+}
+
+async function loadUsers(){
+  const term = (document.getElementById('user-search').value || '').trim();
+  const res = await fetch('/api/admin/users?search=' + encodeURIComponent(term));
+  if(!res.ok){ showToast('Failed to load users', true); return; }
+  const { users } = await res.json();
+
+  document.getElementById('user-count').textContent = users.length;
+  document.getElementById('users-empty').style.display = users.length ? 'none' : 'block';
+  document.getElementById('users-empty').textContent = term
+    ? 'No users match your search.'
+    : 'No users yet.';
+
+  document.getElementById('users-body').innerHTML = users.map(u => `
+    <tr data-id="${u.id}">
+      <td>${u.email}</td>
+      <td>${u.is_admin ? '<span class="tag tag-admin">Admin</span>' : '<span class="tag tag-user">User</span>'}</td>
+      <td class="mono">${fmtDate(u.created_at)}</td>
+      <td>
+        <div class="credits-cell">
+          <input type="number" class="credits-input" value="${u.credits || 0}" data-role="credits-input" />
+          ${u.credits_infinite ? '<span class="tag tag-infinite">∞</span>' : ''}
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn-sm save" data-action="save">Save</button>
+          <button class="btn-sm ${u.credits_infinite ? 'active' : ''}" data-action="infinite">${u.credits_infinite ? '∞ On — click to set custom' : 'Set ∞'}</button>
+          ${u.is_admin ? '' : '<button class="btn-sm danger" data-action="delete">Delete</button>'}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('users-body').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const row = btn.closest('tr');
+  const userId = row.dataset.id;
+  const action = btn.dataset.action;
+  const input = row.querySelector('[data-role="credits-input"]');
+  const isCurrentlyInfinite = btn.textContent.includes('∞ On');
+
+  if(action === 'delete'){
+    if(!confirm('Delete this user? This cannot be undone.')) return;
+    const res = await fetch('/api/admin/delete-user', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ userId })
+    });
+    const data = await res.json();
+    if(!res.ok) return showToast(data.error || 'Failed', true);
+    showToast('User deleted');
+    loadUsers();
+    return;
+  }
+
+  let body;
+  if(action === 'save'){
+    body = { userId, credits: Number(input.value) || 0, infinite: false };
+  } else if(action === 'infinite'){
+    if(isCurrentlyInfinite){
+      body = { userId, credits: Number(input.value) || 0, infinite: false };
+    } else {
+      body = { userId, infinite: true };
+    }
+  }
+
+  const res = await fetch('/api/admin/set-credits', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if(!res.ok) return showToast(data.error || 'Failed', true);
+  showToast('Updated');
+  loadUsers();
+});
+
+/* ── Orders table ── */
+async function loadOrders(){
+  const res = await fetch('/api/admin/orders');
+  if(!res.ok){ document.getElementById('order-count').textContent = '0'; return; }
+  const { orders } = await res.json();
+
+  document.getElementById('order-count').textContent = orders.length;
+  document.getElementById('orders-empty').style.display = orders.length ? 'none' : 'block';
+
+  document.getElementById('orders-body').innerHTML = orders.map(o => `
+    <tr>
+      <td>${o.email}</td>
+      <td class="mono">$${Number(o.amount_usd).toFixed(2)}</td>
+      <td class="mono">${o.credits}</td>
+      <td><span class="tag tag-status-${o.status}">${o.status}</span></td>
+      <td class="mono">${fmtDate(o.created_at)}</td>
+    </tr>
+  `).join('');
+}
+</script>
+</body>
+</html>
