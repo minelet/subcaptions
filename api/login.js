@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
     const { email, password } = await parseBody(req);
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
     const normalizedEmail = String(email).trim().toLowerCase();
-    const { rows } = await sql`SELECT * FROM users WHERE email = ${normalizedEmail}`;
+    const rows = await sql`SELECT * FROM users WHERE email = ${normalizedEmail}`;
     const user = rows[0];
     if (!user || user.password_hash.startsWith('google-oauth:') || !verifyPassword(password, user.password_hash)) {
       return res.status(401).json({ error: 'Invalid email or password' });
