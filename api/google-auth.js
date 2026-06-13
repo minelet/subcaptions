@@ -5,7 +5,6 @@ const { createSession } = require('../lib/auth');
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').toLowerCase();
 
 function getRedirectUri(req) {
-  // Always use the stable production domain
   const host = req.headers['x-forwarded-host'] || req.headers.host || '';
   const proto = 'https';
   return `${proto}://${host}/api/auth/google-callback`;
@@ -26,7 +25,6 @@ function setCookieHeader(res, name, value, expiresDate) {
 module.exports = async (req, res) => {
   const action = req.query.action;
 
-  // redirect to Google
   if (action === 'login') {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     if (!clientId) return res.status(500).send('Google login not configured');
@@ -45,7 +43,6 @@ module.exports = async (req, res) => {
     return res.end();
   }
 
-  // OAuth callback
   if (action === 'callback') {
     try {
       const { code, error } = req.query || {};
@@ -60,7 +57,6 @@ module.exports = async (req, res) => {
 
       const redirectUri = getRedirectUri(req);
 
-      // Exchange code for token
       const tokenResp = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -74,7 +70,6 @@ module.exports = async (req, res) => {
       }
       const tokens = await tokenResp.json();
 
-      // Get user info
       const userInfoResp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${tokens.access_token}` }
       });
@@ -92,8 +87,7 @@ module.exports = async (req, res) => {
 
       await ensureSchema();
 
-      // Find or create user
-      let { rows } = await sql`SELECT * FROM users WHERE email = ${email}`;
+      let rows = await sql`SELECT * FROM users WHERE email = ${email}`;
       let user = rows[0];
 
       if (!user) {
@@ -104,10 +98,9 @@ module.exports = async (req, res) => {
           VALUES (${email}, ${'google-oauth:' + randomHash}, ${isAdmin}, 5, ${isAdmin})
           RETURNING *
         `;
-        user = result.rows[0];
+        user = result[0];
       }
 
-      // Create session
       const session = await createSession(user.id, true);
       const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       setCookieHeader(res, 'session', session.token, expires);
