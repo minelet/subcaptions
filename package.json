@@ -1,0 +1,14 @@
+{
+  "name": "litix",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node tests/regression.mjs"
+  },
+  "dependencies": {
+    "@vercel/postgres": "^0.10.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}
