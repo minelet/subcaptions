@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — LitiX</title>
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48x48.png" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#eef2f7;
+  --surface:#ffffff;
+  --surface2:#f5f7fa;
+  --surface3:#e8eef5;
+  --border:#dce4ef;
+  --border2:#c4d4e8;
+  --teal:#004cff;
+  --teal-dim:#003ccc;
+  --teal-glow:rgba(0,76,255,0.1);
+  --text:#0f1e35;
+  --text2:#4a6080;
+  --text3:#8fa3bc;
+  --danger:#dc2626;
+  --warning:#d97706;
+  --success:#16a34a;
+  --radius:14px;
+  --radius-sm:9px;
+  --accent:#004cff;
+  --accent-bright:#2563eb;
+  --accent-glow:rgba(0,76,255,0.12);
+  --accent-deep:rgba(0,76,255,0.06);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes modalSlideIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes popPulse{
+  0%{transform:scale(1)}
+  35%{transform:scale(1.06)}
+  100%{transform:scale(1)}
+}
+.pop{animation:popPulse .35s ease}
+@keyframes flameFlickerAqua{
+  0%,100%{text-shadow:0 0 4px #00ccff,0 0 10px #14b8a6,0 0 18px #0d9488,0 0 2px #fff}
+  25%{text-shadow:0 0 6px #5eead4,0 0 14px #00ccff,0 0 24px #14b8a6,0 0 3px #fff}
+  50%{text-shadow:0 0 3px #14b8a6,0 0 8px #0d9488,0 0 14px #00ccff,0 0 1px #fff}
+  75%{text-shadow:0 0 7px #00ccff,0 0 16px #5eead4,0 0 22px #14b8a6,0 0 3px #fff}
+}
+.logo{animation:flameFlickerAqua 1.6s ease-in-out infinite}
+.logo em{font-style:normal;color:var(--accent-bright)}
+
+/* ── LOGIN OVERLAY ── */
+#login-overlay{
+  position:fixed;inset:0;z-index:10000;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+#login-overlay.hidden{display:none}
+.login-box{
+  background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:40px 44px;width:100%;max-width:400px;
+  display:flex;flex-direction:column;gap:18px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.07);
+  animation:fadeInUp .35s ease both;
+}
+.login-brand{font-size:18px;font-weight:700;letter-spacing:-0.04em;color:var(--text);text-align:center}
+.login-title{font-size:12px;color:var(--text3);text-align:center;margin-top:-8px}
+.login-field{display:flex;flex-direction:column;gap:6px}
+.login-field label{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3)}
+.api-input{
+  font-family:'Inter',sans-serif;font-size:13px;
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);border-radius:9px;padding:10px 14px;
+  outline:none;width:100%;transition:border-color .2s,box-shadow .2s;
+}
+.api-input:focus{border-color:var(--accent-bright);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.btn-login{
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:700;
+  color:#fff;background:var(--accent-bright);border:none;
+  border-radius:9px;padding:12px;cursor:pointer;width:100%;
+  transition:background .15s,transform .1s,box-shadow .15s;
+  box-shadow:0 4px 14px rgba(37,99,235,0.25);
+}
+.btn-login:hover{background:#1d4fd8;transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,0.3)}
+.btn-login:active{transform:translateY(0);transform:scale(.97)}
+.login-err{font-size:12px;color:var(--danger);text-align:center;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;display:none}
+.login-err.show{display:block}
+.login-divider{display:flex;align-items:center;text-align:center;color:var(--text3);font-size:11px;gap:10px}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.btn-google{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+  color:var(--text);background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;padding:10px;cursor:pointer;width:100%;
+  transition:background .15s,border-color .15s;
+}
+.btn-google:hover{background:var(--surface2);border-color:var(--border2)}
+
+#app.app-hidden{display:none}
+
+/* ── NAV ── */
+nav{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 24px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  animation:fadeInDown .3s ease both;
+}
+.nav-logo{font-size:16px;font-weight:700;letter-spacing:-0.04em;color:var(--text);display:flex;align-items:center;gap:10px}
+.admin-badge{
+  font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--accent-bright);background:var(--accent-glow);
+  border:1px solid rgba(37,99,235,0.2);padding:3px 10px;border-radius:100px;
+}
+.nav-right{display:flex;align-items:center;gap:10px}
+.btn-nav{
+  background:none;border:1px solid var(--border2);color:var(--text2);
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:600;
+  border-radius:8px;padding:6px 12px;cursor:pointer;
+  transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;
+}
+.btn-nav:hover{border-color:var(--accent-bright);color:var(--accent-bright);background:var(--accent-glow)}
+#account-dropdown{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  min-width:200px;padding:8px;z-index:300;
+  box-shadow:0 8px 28px rgba(0,0,0,0.1);
+  animation:fadeInDown .15s ease both;
+}
+#account-dropdown.hidden{display:none}
+.acct-email{font-size:11px;color:var(--text3);padding:6px 8px;word-break:break-all}
+.acct-divider{height:1px;background:var(--border);margin:4px 0}
+.acct-item{
+  display:block;width:100%;text-align:left;background:none;border:none;
+  color:var(--text);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
+  padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .15s;
+}
+.acct-item:hover{background:var(--surface2)}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1200px;margin:0 auto;padding:28px 24px;display:flex;flex-direction:column;gap:20px}
+
+/* ── STATS BAR ── */
+.stats-bar{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  animation:fadeInUp .35s .05s ease both;
+}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;
+}
+.stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:6px}
+.stat-value{font-size:28px;font-weight:800;color:var(--text);letter-spacing:-0.04em;line-height:1}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.stat-card.accent{background:var(--accent-bright);border-color:var(--accent-bright)}
+.stat-card.accent .stat-label,.stat-card.accent .stat-sub{color:rgba(255,255,255,0.65)}
+.stat-card.accent .stat-value{color:#fff}
+
+/* ── SECTION ── */
+.section{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:22px;animation:fadeInUp .4s ease both;
+}
+.section:nth-child(2){animation-delay:.05s}
+.section:nth-child(3){animation-delay:.1s}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.section-header h2{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.count-badge{
+  font-size:10px;font-weight:700;color:var(--accent-bright);
+  background:var(--accent-glow);border:1px solid rgba(37,99,235,0.15);
+  padding:2px 8px;border-radius:100px;
+}
+
+/* ── SEARCH ── */
+.search-wrap{position:relative;max-width:280px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.search-wrap input{padding-left:32px}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{
+  text-align:left;color:var(--text3);font-weight:600;
+  text-transform:uppercase;font-size:10px;letter-spacing:0.06em;
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  white-space:nowrap;background:var(--surface2);
+}
+th:first-child{border-radius:10px 0 0 0}
+th:last-child{border-radius:0 10px 0 0}
+td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surface2)}
+.mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+.tag{
+  font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;
+  text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap;display:inline-block;
+}
+.tag-admin{color:var(--accent-bright);background:var(--accent-glow);border:1px solid rgba(37,99,235,0.2)}
+.tag-user{color:var(--text3);background:var(--surface2);border:1px solid var(--border2)}
+.tag-infinite{color:var(--warning);background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.2)}
+.tag-status-completed{color:var(--success);background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.2)}
+.tag-status-pending{color:var(--warning);background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.2)}
+.tag-status-failed{color:var(--danger);background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2)}
+
+.credits-cell{display:flex;align-items:center;gap:8px}
+.credits-input{
+  font-family:'JetBrains Mono',monospace;font-size:12px;width:80px;
+  background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+  border-radius:7px;padding:5px 8px;outline:none;transition:border-color .15s;
+}
+.credits-input:focus{border-color:var(--accent-bright)}
+.credits-input:disabled{opacity:.4}
+
+.rank-input{
+  font-family:'Inter',sans-serif;font-size:11px;width:96px;
+  background:var(--surface2);border:1px solid var(--border2);color:var(--text);
+  border-radius:7px;padding:5px 8px;outline:none;transition:border-color .15s;
+}
+.rank-input:focus{border-color:var(--accent-bright)}
+.rank-input::placeholder{color:var(--text3)}
+.tag-rank-empty{color:var(--text3);background:var(--surface2);border:1px solid var(--border2)}
+
+.btn-sm{
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:600;
+  border-radius:7px;padding:5px 11px;cursor:pointer;border:1px solid var(--border2);
+  background:none;color:var(--text2);transition:all .15s;white-space:nowrap;
+}
+.btn-sm:hover{border-color:var(--accent-bright);color:var(--accent-bright);background:var(--accent-glow)}
+.btn-sm.active{color:var(--warning);border-color:rgba(217,119,6,0.3);background:rgba(217,119,6,0.06)}
+.btn-sm.save{color:#fff;background:var(--accent-bright);border-color:var(--accent-bright)}
+.btn-sm.save:hover{background:#1d4fd8}
+.btn-sm.danger:hover{border-color:var(--danger);color:var(--danger);background:rgba(220,38,38,0.06)}
+
+.empty{color:var(--text3);text-align:center;padding:32px;font-size:12px}
+
+/* ── LOADING SPINNER ── */
+.table-loading{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:32px;color:var(--text3);font-size:12px;
+}
+.table-spinner{
+  width:16px;height:16px;border:2px solid var(--border2);
+  border-top-color:var(--accent-bright);border-radius:50%;
+  animation:spin .5s linear infinite;
+}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--text);
+  border-radius:10px;padding:11px 18px;font-size:12px;font-weight:500;color:#fff;
+  opacity:0;transform:translateY(10px);transition:all .25s;
+  pointer-events:none;z-index:9999;
+  box-shadow:0 8px 24px rgba(0,0,0,0.15);
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:var(--danger)}
+.toast.success{background:var(--success)}
+
+@media(max-width:768px){
+  .stats-bar{grid-template-columns:1fr 1fr}
+  .login-box{padding:28px 24px}
+  .wrap{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-brand logo">Liti<em>X</em></div>
+    <div class="login-title">Admin Panel — Restricted Access</div>
+    <div class="login-err" id="login-err"></div>
+    <form id="login-form" style="display:flex;flex-direction:column;gap:14px">
+      <div class="login-field">
+        <label>Email</label>
+        <input class="api-input" type="email" id="login-email" required autocomplete="email" placeholder="admin@example.com" />
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input class="api-input" type="password" id="login-password" required autocomplete="current-password" placeholder="••••••••" />
+      </div>
+      <button class="btn-login" type="submit" id="login-submit">Log In</button>
+    </form>
+
+    <div class="login-divider"><span>or</span></div>
+    <button class="btn-google" id="btn-google-login" type="button">
+      <svg width="16" height="16" viewBox="0 0 48 48" style="flex-shrink:0">
+        <path fill="#FFC107" d="M43.6 20.5h-1.9V20.5H24v7h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.1 8 3.1l5-5C33.6 6.5 29 4.5 24 4.5 13.5 4.5 5 13 5 23.5S13.5 42.5 24 42.5c10.4 0 19-7.5 19-19 0-1.3-.1-2.3-.4-3z"/>
+        <path fill="#FF3D00" d="M6.3 14.7l5.8 4.2C13.7 15.2 18.5 12.5 24 12.5c3.1 0 5.9 1.1 8 3.1l5-5C33.6 6.5 29 4.5 24 4.5c-7.7 0-14.3 4.4-17.7 10.2z"/>
+        <path fill="#4CAF50" d="M24 42.5c5 0 9.6-1.9 13-5l-6-4.9c-1.9 1.3-4.3 2.1-7 2.1-5.3 0-9.7-3.4-11.3-8l-5.9 4.5C9.7 38.1 16.3 42.5 24 42.5z"/>
+        <path fill="#1976D2" d="M43.6 20.5H24v7h11.3a12 12 0 0 1-4.3 6.6l6 4.9C40.9 35.6 43.6 30.1 43.6 23.5c0-1.3-.1-2.3-.4-3z"/>
+      </svg>
+      Continue with Google
+    </button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app-hidden">
+  <nav>
+    <div class="nav-logo">
+      <span class="logo">Liti<em>X</em></span>
+      <span class="admin-badge">Admin</span>
+    </div>
+    <div class="nav-right">
+      <a href="/" class="btn-nav">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+        Back to App
+      </a>
+      <button class="btn-nav" id="btn-admin-test-purchase" title="Simulate a pack purchase on your own account without PayPal">
+        🧪 Test Purchase
+      </button>
+      <div id="account-menu-wrap" style="position:relative">
+        <button class="btn-nav" id="btn-account">
+          <span id="account-icon" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--accent-bright);color:#fff;font-weight:700;font-size:10px">A</span>
+          <span id="account-email-short">Admin</span>
+        </button>
+        <div id="account-dropdown" class="hidden">
+          <div id="account-email-full" class="acct-email"></div>
+          <div class="acct-divider"></div>
+          <button class="acct-item" id="acct-logout">Log out</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <!-- STATS -->
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-card accent">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value" id="stat-users">—</div>
+        <div class="stat-sub">registered accounts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-value" id="stat-orders">—</div>
+        <div class="stat-sub">all time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Unlimited Accounts</div>
+        <div class="stat-value" id="stat-infinite">—</div>
+        <div class="stat-sub">∞ credits</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Admin Accounts</div>
+        <div class="stat-value" id="stat-admins">—</div>
+        <div class="stat-sub">with admin access</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Credits Used</div>
+        <div class="stat-value" id="stat-credits-used">—</div>
+        <div class="stat-sub">lifetime, all users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Credits Bought</div>
+        <div class="stat-value" id="stat-credits-bought">—</div>
+        <div class="stat-sub">lifetime, all users</div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="section">
+      <div class="section-header">
+        <h2>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Users
+          <span class="count-badge" id="user-count">0</span>
+        </h2>
+        <div class="search-wrap">
+          <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="user-search" class="api-input" placeholder="Search by email..." style="padding-left:32px" />
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Email</th><th>Role</th><th>Joined</th><th>Credits</th><th>Used</th><th>Bought</th><th>Rank</th><th>Streak</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="users-body">
+            <tr><td colspan="9"><div class="table-loading"><div class="table-spinner"></div> Loading users…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty" id="users-empty" style="display:none">No users yet.</div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="section">
+      <div class="section-header">
+        <h2>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Orders
+          <span class="count-badge" id="order-count">0</span>
+        </h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>User</th><th>Amount</th><th>Credits</th><th>Status</th><th>Date</th></tr>
+          </thead>
+          <tbody id="orders-body">
+            <tr><td colspan="5"><div class="table-loading"><div class="table-spinner"></div> Loading orders…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty" id="orders-empty" style="display:none">No orders yet.</div>
+    </div>
+
+    <!-- AI CLIP FINDER -->
+    <div class="section">
+      <div class="section-header">
+        <h2>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          AI Clip Finder
+        </h2>
+        <div style="display:flex;align-items:center;gap:8px">
+          <select id="cf-days-filter" style="font-size:11.5px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);cursor:pointer" onchange="loadClipFinderStats()">
+            <option value="">All time</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+          <button class="btn-sm" id="cf-export-csv" onclick="exportClipFinderCsv()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="stats-bar" style="margin-bottom:16px">
+        <div class="stat-card">
+          <div class="stat-label">Total Runs</div>
+          <div class="stat-value" id="cf-stat-runs">—</div>
+          <div class="stat-sub">success + failures</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Failure Rate</div>
+          <div class="stat-value" id="cf-stat-failrate">—</div>
+          <div class="stat-sub">auth + other errors</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Invalid-Key Errors</div>
+          <div class="stat-value" id="cf-stat-autherr">—</div>
+          <div class="stat-sub">bad Groq key on their end</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Refunds Issued</div>
+          <div class="stat-value" id="cf-stat-refunds">—</div>
+          <div class="stat-sub">auto-refunded on failure</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>User</th><th>Event</th><th>Clips found</th><th>Detail</th><th>Date</th></tr>
+          </thead>
+          <tbody id="cf-events-body">
+            <tr><td colspan="5"><div class="table-loading"><div class="table-spinner"></div> Loading…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty" id="cf-events-empty" style="display:none">No AI Clip Finder activity yet.</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Streak event history drawer -->
+<div id="streak-drawer-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:900" onclick="closeStreakHistory()"></div>
+<div id="streak-drawer" style="display:none;position:fixed;top:0;right:0;bottom:0;width:420px;max-width:95vw;background:var(--bg);border-left:1px solid var(--border);z-index:901;overflow-y:auto;padding:24px 20px;box-sizing:border-box">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div>
+      <div style="font-size:15px;font-weight:700">Streak History</div>
+      <div id="drawer-user-label" style="font-size:12px;color:var(--text3);margin-top:2px"></div>
+    </div>
+    <button onclick="closeStreakHistory()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text2)">✕ Close</button>
+  </div>
+  <div id="drawer-body" style="font-size:12px"></div>
+</div>
+
+<script>
+const overlay   = document.getElementById('login-overlay');
+const app       = document.getElementById('app');
+const form      = document.getElementById('login-form');
+const errEl     = document.getElementById('login-err');
+const toast     = document.getElementById('toast');
+const submitBtn = document.getElementById('login-submit');
+
+function escapeHtml(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[c]));
+}
+
+function showToast(msg, type=''){
+  toast.textContent = msg;
+  toast.className = 'toast' + (type ? ' '+type : '');
+  toast.classList.add('show');
+  setTimeout(()=> toast.classList.remove('show'), 2600);
+}
+
+document.getElementById('btn-google-login').addEventListener('click', () => {
+  window.location.href = '/api/auth/google?from=admin';
+});
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errEl.classList.remove('show');
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-password').value;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Logging in…';
+  try{
+    const res  = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password:pass}) });
+    const data = await res.json();
+    if(!res.ok){ errEl.textContent = data.error||'Login failed'; errEl.classList.add('show'); return; }
+    if(!data.user.isAdmin){ errEl.textContent = 'Not an admin account'; errEl.classList.add('show'); await fetch('/api/logout',{method:'POST'}); return; }
+    enterApp(data.user);
+  }catch(err){
+    errEl.textContent = 'Network error'; errEl.classList.add('show');
+  }finally{
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Log In';
+  }
+});
+
+document.getElementById('acct-logout').addEventListener('click', async () => {
+  await fetch('/api/logout',{method:'POST'});
+  overlay.classList.remove('hidden');
+  app.classList.add('app-hidden');
+  document.getElementById('login-email').value='';
+  document.getElementById('login-password').value='';
+});
+
+function enterApp(user){
+  overlay.classList.add('hidden');
+  app.classList.remove('app-hidden');
+  document.getElementById('account-email-full').textContent = user.email;
+  document.getElementById('account-email-short').textContent = user.email.split('@')[0];
+  document.getElementById('account-icon').textContent = user.email.charAt(0).toUpperCase();
+  loadUsers();
+  loadOrders();
+  loadClipFinderStats();
+}
+
+(async function init(){
+  try{
+    const res = await fetch('/api/me');
+    if(res.ok){ const u = await res.json(); if(u.isAdmin){ enterApp(u); return; } }
+  }catch(e){}
+  app.classList.add('app-hidden');
+})();
+
+// Show a one-time notice from the Google OAuth redirect, if any (e.g. an old
+// password on this account was invalidated for security reasons)
+(function checkOAuthNotice(){
+  const params = new URLSearchParams(window.location.search);
+  const notice = params.get('notice');
+  if(notice === 'password_cleared'){
+    alert('Signed in with Google. For your security, any previous password on this account has been cleared — please continue signing in with Google from now on.');
+    params.delete('notice');
+    const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    window.history.replaceState({}, '', newUrl);
+  }
+})();
+
+const accountBtn = document.getElementById('btn-account');
+const dropdown   = document.getElementById('account-dropdown');
+accountBtn.addEventListener('click', (e)=>{ e.stopPropagation(); dropdown.classList.toggle('hidden'); });
+document.addEventListener('click', (e)=>{ if(!dropdown.contains(e.target)&&!accountBtn.contains(e.target)) dropdown.classList.add('hidden'); });
+
+// Dev-only: simulate a pack purchase on the logged-in admin's own account,
+// without going through PayPal. Server-side admin check lives in
+// /api/use-credits (action:'add') — this button is just the UI trigger.
+document.getElementById('btn-admin-test-purchase').addEventListener('click', async () => {
+  const packs = ['starter','popular','pro','bulk','godly'];
+  const pack = prompt('Test pack? ' + packs.join(' / '), 'starter');
+  if(!pack || !packs.includes(pack)) return;
+  try {
+    const res = await fetch('/api/use-credits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'add', packId: pack })
+    });
+    const data = await res.json();
+    if(!res.ok) return alert('Error: ' + (data.error || 'unknown'));
+    const decay = data.decay ? `\n⚠️ Decayed ${data.decay.missedPeriods} period(s) first.` : '';
+    alert(`✅ Test purchase: ${pack}\nYour credits: ${data.credits}\nRank: ${data.rank || '—'}\nStreak: ${data.streakCount}${decay}`);
+    loadUsers();
+    loadOrders();
+    loadClipFinderStats();
+  } catch (e) {
+    alert('Test purchase failed: ' + e.message);
+  }
+});
+
+let searchDebounce;
+document.getElementById('user-search').addEventListener('input', ()=>{
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(loadUsers, 250);
+});
+
+function fmtDate(ts){
+  return new Date(ts).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});
+}
+
+async function loadUsers(popId){
+  const term = (document.getElementById('user-search').value||'').trim();
+  const res  = await fetch('/api/admin/users?search='+encodeURIComponent(term));
+  if(!res.ok){ showToast('Failed to load users','error'); return; }
+  const { users } = await res.json();
+
+  document.getElementById('user-count').textContent    = users.length;
+  document.getElementById('stat-users').textContent    = users.length;
+  document.getElementById('stat-infinite').textContent = users.filter(u=>u.credits_infinite).length;
+  document.getElementById('stat-admins').textContent   = users.filter(u=>u.is_admin).length;
+  document.getElementById('stat-credits-used').textContent   = users.reduce((sum,u)=>sum+(Number(u.credits_used)||0),0);
+  document.getElementById('stat-credits-bought').textContent = users.reduce((sum,u)=>sum+(Number(u.credits_bought)||0),0);
+
+  const emptyEl = document.getElementById('users-empty');
+  if(!users.length){
+    document.getElementById('users-body').innerHTML = '';
+    emptyEl.style.display = 'block';
+    emptyEl.textContent = term ? 'No users match your search.' : 'No users yet.';
+  } else {
+    emptyEl.style.display = 'none';
+    document.getElementById('users-body').innerHTML = users.map(u => {
+      const streakLabel = u.streak_count >= 5 ? '💎 Diamond+' : u.streak_count >= 3 ? '🥇 Gold+' : u.streak_count > 0 ? `${u.streak_count} mo` : '—';
+      const deadlineTxt = u.period_deadline_at ? (() => {
+        const d = new Date(u.period_deadline_at);
+        const days = Math.ceil((d - Date.now()) / 86400000);
+        return days > 0 ? `${days}d left` : 'Expired';
+      })() : '—';
+      return `
+      <tr data-id="${escapeHtml(u.id)}" data-current-rung="${u.rank_rung||0}">
+        <td><span class="mono">${escapeHtml(u.email)}</span></td>
+        <td>${u.is_admin ? '<span class="tag tag-admin">Admin</span>' : '<span class="tag tag-user">User</span>'}</td>
+        <td class="mono" style="color:var(--text3)">${fmtDate(u.created_at)}</td>
+        <td>
+          <div class="credits-cell">
+            <input type="number" class="credits-input" value="${u.credits||0}" data-role="credits-input" ${u.credits_infinite ? 'disabled' : ''} />
+            ${u.credits_infinite ? '<span class="tag tag-infinite">∞ Unlimited</span>' : ''}
+          </div>
+        </td>
+        <td class="mono" style="color:var(--text3)">${u.credits_used||0}</td>
+        <td class="mono" style="color:var(--text3)">${u.credits_bought||0}</td>
+        <td>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <select class="rank-input" data-role="rank-input" style="font-size:12px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);cursor:pointer">
+              <option value="0"  ${(u.rank_rung||0)===0?'selected':''}>— None</option>
+              <option value="1"  ${(u.rank_rung||0)===1?'selected':''}>⭐ Starter</option>
+              <option value="2"  ${(u.rank_rung||0)===2?'selected':''}>🔥 Popular</option>
+              <option value="3"  ${(u.rank_rung||0)===3?'selected':''}>💪 Pro</option>
+              <option value="4"  ${(u.rank_rung||0)===4?'selected':''}>📦 Bulk</option>
+              <option value="5"  ${(u.rank_rung||0)===5?'selected':''}>🚀 Limited Edition</option>
+              <option value="gold"    ${u.streak_count>=3&&u.streak_count<5?'selected':''}>🥇 Gold+</option>
+              <option value="diamond" ${u.streak_count>=5?'selected':''}>💎 Diamond+</option>
+            </select>
+            ${u.period_deadline_at ? `<div style="font-size:10px;color:var(--text3)">${deadlineTxt}</div>` : ''}
+          </div>
+        </td>
+        <td>
+          <span style="font-size:12px;font-weight:600">${streakLabel}</span>
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${!u.credits_infinite ? `<button class="btn-sm save" data-action="save">Save</button>` : ''}
+            <button class="btn-sm ${u.credits_infinite?'active':''}" data-action="infinite">${u.credits_infinite?'Remove ∞':'Set ∞'}</button>
+            <button class="btn-sm" data-action="save-rank">Save Rank</button>
+            <button class="btn-sm" data-action="streak-history" title="View streak event history">History</button>
+            ${!u.is_admin ? `<button class="btn-sm danger" data-action="delete">Delete</button>` : ''}
+          </div>
+        </td>
+      </tr>
+    `}).join('');
+
+    if(popId){
+      const poppedRow = document.querySelector(`#users-body tr[data-id="${popId}"]`);
+      if(poppedRow) poppedRow.classList.add('pop');
+    }
+  }
+}
+
+document.getElementById('users-body').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button'); if(!btn) return;
+  const row    = btn.closest('tr');
+  const userId = row.dataset.id;
+  const action = btn.dataset.action;
+  const input     = row.querySelector('[data-role="credits-input"]');
+  const rankInput = row.querySelector('[data-role="rank-input"]');
+  const isInfinite = btn.textContent.includes('Remove');
+
+  if(action==='delete'){
+    if(!confirm('Delete this user? This cannot be undone.')) return;
+    const res  = await fetch('/api/admin/users',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId})});
+    const data = await res.json();
+    if(!res.ok) return showToast(data.error||'Failed to delete user','error');
+    showToast('User deleted ✓','success');
+    loadUsers();
+    return;
+  }
+
+  if(action==='save-rank'){
+    const rankSel = row.querySelector('[data-role="rank-input"]');
+    const val = rankSel?.value ?? '0';
+    let rankRung, streakCount;
+    if(val === 'gold')    { rankRung = parseInt(row.dataset.currentRung||'0'); streakCount = 3; }
+    else if(val==='diamond') { rankRung = parseInt(row.dataset.currentRung||'0'); streakCount = 5; }
+    else { rankRung = parseInt(val,10); streakCount = 0; }
+    const res  = await fetch('/api/admin/users',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId, rankRung, streakCount})});
+    const data = await res.json();
+    if(!res.ok) return showToast(data.error||'Failed to update rank','error');
+    showToast(`Rank updated → ${data.rank||'None'} ✓`,'success');
+    loadUsers(userId);
+    return;
+  }
+
+  if(action==='streak-history'){
+    openStreakHistory(userId, row.querySelector('.mono')?.textContent || userId);
+    return;
+  }
+
+  let body;
+  if(action==='save')          body = { userId, credits:Number(input?.value)||0, infinite:false };
+  else if(action==='infinite') body = isInfinite ? { userId, credits:Number(input?.value)||0, infinite:false } : { userId, infinite:true };
+
+  const res  = await fetch('/api/admin/users',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const data = await res.json();
+  if(!res.ok) return showToast(data.error||'Failed to update credits','error');
+  showToast('Updated ✓','success');
+  loadUsers(userId);
+});
+
+async function loadOrders(){
+  const res = await fetch('/api/admin/orders');
+  if(!res.ok){
+    document.getElementById('order-count').textContent = '0';
+    document.getElementById('stat-orders').textContent = '0';
+    document.getElementById('orders-body').innerHTML = '';
+    document.getElementById('orders-empty').style.display = 'block';
+    return;
+  }
+  const { orders } = await res.json();
+  document.getElementById('order-count').textContent  = orders.length;
+  document.getElementById('stat-orders').textContent  = orders.length;
+
+  const emptyEl = document.getElementById('orders-empty');
+  if(!orders.length){
+    document.getElementById('orders-body').innerHTML = '';
+    emptyEl.style.display = 'block';
+  } else {
+    emptyEl.style.display = 'none';
+    document.getElementById('orders-body').innerHTML = orders.map(o=>`
+      <tr>
+        <td class="mono">${escapeHtml(o.email)}</td>
+        <td class="mono" style="font-weight:600">$${Number(o.amount_usd).toFixed(2)}</td>
+        <td class="mono">${Number(o.credits)||0}</td>
+        <td><span class="tag tag-status-${escapeHtml(o.status)}">${escapeHtml(o.status)}</span></td>
+        <td class="mono" style="color:var(--text3)">${fmtDate(o.created_at)}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+const CF_EVENT_LABELS = {
+  success:    { icon: '✅', label: 'Success', color: 'var(--success, #16a34a)' },
+  auth_error: { icon: '🔑', label: 'Invalid key', color: 'var(--warning, #d97706)' },
+  error:      { icon: '❌', label: 'Error', color: 'var(--danger, #dc2626)' },
+  refund:     { icon: '↩️', label: 'Refund', color: 'var(--text2)' },
+};
+async function loadClipFinderStats(){
+  const days = document.getElementById('cf-days-filter')?.value || '';
+  const res = await fetch('/api/admin/clip-finder-stats' + (days ? `?days=${encodeURIComponent(days)}` : ''));
+  if(!res.ok) return;
+  const { summary, totalRuns, failureRate, recent } = await res.json();
+  document.getElementById('cf-stat-runs').textContent = totalRuns;
+  document.getElementById('cf-stat-failrate').textContent = totalRuns > 0 ? failureRate + '%' : '—';
+  document.getElementById('cf-stat-autherr').textContent = summary.auth_error;
+  document.getElementById('cf-stat-refunds').textContent = summary.refund;
+
+  const emptyEl = document.getElementById('cf-events-empty');
+  if(!recent.length){
+    document.getElementById('cf-events-body').innerHTML = '';
+    emptyEl.style.display = 'block';
+  } else {
+    emptyEl.style.display = 'none';
+    document.getElementById('cf-events-body').innerHTML = recent.map(e => {
+      const meta = CF_EVENT_LABELS[e.event_type] || { icon:'•', label:e.event_type, color:'var(--text2)' };
+      return `
+        <tr>
+          <td class="mono">${escapeHtml(e.email || '(deleted user)')}</td>
+          <td style="color:${meta.color};font-weight:600">${meta.icon} ${meta.label}</td>
+          <td class="mono">${e.candidates_found != null ? e.candidates_found : '—'}</td>
+          <td class="mono" style="color:var(--text3)">${escapeHtml(e.detail || '')}</td>
+          <td class="mono" style="color:var(--text3)">${fmtDate(e.created_at)}</td>
+        </tr>`;
+    }).join('');
+  }
+}
+function exportClipFinderCsv(){
+  const days = document.getElementById('cf-days-filter')?.value || '';
+  const url = '/api/admin/clip-finder-stats?format=csv' + (days ? `&days=${encodeURIComponent(days)}` : '');
+  window.location.href = url;
+}
+
+// ── Streak event history drawer ─────────────────────────────────────────
+const EVENT_LABELS = {
+  purchase:       { icon: '🛒', label: 'Purchase' },
+  decay:          { icon: '📉', label: 'Decay (missed period)' },
+  drip:           { icon: '💧', label: 'Credit drip' },
+  admin_override: { icon: '🔧', label: 'Admin override' },
+};
+const RUNG_NAMES = ['None','Starter','Popular','Pro','Bulk','Limited Edition'];
+
+async function openStreakHistory(userId, userEmail){
+  document.getElementById('drawer-user-label').textContent = userEmail;
+  document.getElementById('drawer-body').innerHTML = '<div style="color:var(--text3);padding:12px 0">Loading…</div>';
+  document.getElementById('streak-drawer-overlay').style.display = '';
+  document.getElementById('streak-drawer').style.display = '';
+
+  const res = await fetch(`/api/admin/streak-events?userId=${userId}&limit=100`);
+  if(!res.ok){
+    document.getElementById('drawer-body').innerHTML = '<div style="color:var(--danger)">Failed to load events.</div>';
+    return;
+  }
+  const { events } = await res.json();
+  if(!events.length){
+    document.getElementById('drawer-body').innerHTML = '<div style="color:var(--text3)">No streak events yet.</div>';
+    return;
+  }
+
+  document.getElementById('drawer-body').innerHTML = events.map(ev => {
+    const meta = EVENT_LABELS[ev.event_type] || { icon: '•', label: ev.event_type };
+    const d    = ev.detail || {};
+    let detail = '';
+
+    if(ev.event_type === 'purchase'){
+      detail = `Pack rung ${d.packRung} → Rung ${d.rungAfter} (${RUNG_NAMES[d.rungAfter]||'?'}), streak ${d.streakAfter}, tier ${d.tierAfter}`;
+      if(d.decay) detail += ` · ⚠️ Decayed ${d.decay.missedPeriods} period(s) first`;
+      if(d.streakEligible === false) detail += ` · Starter pack — doesn't count toward streak`;
+    } else if(ev.event_type === 'decay'){
+      detail = `Missed ${d.missedPeriods} period(s). Rung ${d.rungBefore}→${d.rungAfter} (${RUNG_NAMES[d.rungAfter]||'?'}), streak reset from ${d.streakBefore}`;
+    } else if(ev.event_type === 'drip'){
+      detail = `+${d.credits} credits (${d.tier === 'diamond' ? 'Diamond+ weekly' : 'Gold+ bi-weekly'} drip)`;
+    } else if(ev.event_type === 'admin_override'){
+      detail = `Rung → ${d.rankRung}, Streak → ${d.streakCount} (by admin ${d.adminId})`;
+    } else {
+      detail = JSON.stringify(d);
+    }
+
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:600">${meta.icon} ${escapeHtml(meta.label)}</span>
+        <span style="color:var(--text3);font-size:11px">${fmtDate(ev.created_at)}</span>
+      </div>
+      <div style="color:var(--text2);margin-top:4px;font-size:11.5px">${escapeHtml(detail)}</div>
+    </div>`;
+  }).join('');
+}
+
+function closeStreakHistory(){
+  document.getElementById('streak-drawer-overlay').style.display = 'none';
+  document.getElementById('streak-drawer').style.display = 'none';
+}
+</script>
+</body>
+</html>
