@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/api/admin/users",          "destination": "/api/admin.js?resource=users" },
-    { "source": "/api/admin/orders",         "destination": "/api/admin.js?resource=orders" },
-    { "source": "/api/admin/streak-events",  "destination": "/api/admin.js?resource=streak-events" },
-    { "source": "/api/admin/clip-finder-stats", "destination": "/api/admin.js?resource=clip-finder-stats" }
-  ]
-}
