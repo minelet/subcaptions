@@ -1,0 +1,9 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+numpy>=1.26
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.1
+torchaudio>=2.1
+# optional, better romanization for scripts other than Devanagari:
+# uroman>=1.3
